@@ -1,11 +1,19 @@
-const { SlashCommandBuilder } = require('discord.js');
+const { SlashCommandBuilder, PermissionFlagsBits, MessageFlags } = require('discord.js');
 
 module.exports = {
 	data: new SlashCommandBuilder().setName('server').setDescription('Provides information about the server.'),
 	async execute(interaction) {
 
-		await interaction.reply(
-			`This server is ${interaction.guild.name} and has ${interaction.guild.memberCount} members.`,
-		);
+		if (!interaction.memberPermissions.has(PermissionFlagsBits.Administrator)) {
+			return interaction.reply({
+				content: "Only an admin can access this command",
+				flags: MessageFlags.Ephemeral
+			});
+		}
+
+		await interaction.reply({
+			content: `This server has ${interaction.guild.memberCount} members.`,
+            flags: MessageFlags.Ephemeral,
+		});
 	},
 };
