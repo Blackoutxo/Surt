@@ -1,7 +1,7 @@
 require('dotenv').config();
 const fs = require('node:fs');
 const path = require('node:path');
-const { Client, Events, GatewayIntentBits, MessageFlags } = require('discord.js');
+const { Client, Events, GatewayIntentBits, MessageFlags, Collection } = require('discord.js');
 const { log } = require('./lib/log.js');
 
 const surt = new Client({
@@ -17,14 +17,11 @@ const commandFolders = fs.readdirSync(foldersPath);
 
 // Info login message
 surt.once('clientReady', (a) => {
-    log.info('Logged in as ${a.user.tag}');
+    log.info(`Logged in as ${a.user.tag}`);
 });
 
 // Commands collection
 surt.commands = new Collection();
-
-// Login
-surt.login(process.env.DSC_TOKEN);
 
 // Commands folder accessor
 for (const folder of commandFolders) {
@@ -66,3 +63,6 @@ surt.on(Events.InteractionCreate, async (interaction) => {
 		}
 	}
 });
+
+// Login
+surt.login(process.env.TOKEN);
