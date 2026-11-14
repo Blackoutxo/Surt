@@ -7,6 +7,7 @@ const { log } = require('./lib/log.js');
 const surt = new Client({
     intents: [
         GatewayIntentBits.Guilds,
+		GatewayIntentBits.GuildMembers,
         GatewayIntentBits.GuildMessages,
         GatewayIntentBits.MessageContent
     ]
