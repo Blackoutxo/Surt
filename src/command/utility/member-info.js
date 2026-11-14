@@ -47,6 +47,6 @@ module.exports = {
                     .setFooter({ text: `Requested by ${interaction.user.tag}`, iconURL: interaction.user.displayAvatarURL() })
                     .setTimestamp();
 
-        await interaction.reply({embeds: [embed]});
+        await interaction.reply({ embeds: [embed] });
     },
 };
