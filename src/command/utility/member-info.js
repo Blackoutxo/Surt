@@ -1,5 +1,5 @@
-const { SlashCommandBuilder, EmbedBuilder, Colors } = require('discord.js');
-const { getOffence } = require('../../lib/db.js');
+const { SlashCommandBuilder, EmbedBuilder, PermissionFlagsBits, Colors, MessageFlags} = require('discord.js');
+const { getOffences } = require('../../lib/db.js');
 
 module.exports = {
     data: new SlashCommandBuilder().setName('info')
@@ -11,6 +11,15 @@ module.exports = {
     ),
 
     async execute(interaction) {
+        const isAdmin = interaction.memberPermissions.has(PermissionFlagsBits.Administrator);
+
+        // Check if interacting user is admin
+        if (!isAdmin) {
+            return interaction.reply({ 
+                content: "You do not have admin permissions to use this.",
+                flags: MessageFlags.Ephemeral,
+            });
+        }
 
         // User
         const member = interaction.options.getMember('target') || interaction.member;
@@ -18,7 +27,7 @@ module.exports = {
 
         // Fetch values
         const creation = `<t:${Math.floor(user.createdTimestamp / 1000)}:R>`;
-        const offences = getOffence(interaction.guild.id, user.id);
+        const offences = getOffences(interaction.guild.id, user.id);
 
         const offenceSummary = offences.length === 0 
               ? 'None in record'
@@ -33,7 +42,7 @@ module.exports = {
                     .setThumbnail(user.displayAvatarURL({ dynamic: true }))
                     .addFields(
                         {name: 'Account Created', value: creation},
-                        {name: 'Offences', value: offences},
+                        {name: 'Offences', value: offenceSummary},
                     )
                     .setFooter({ text: `Requested by ${interaction.user.tag}`, iconURL: interaction.user.displayAvatarURL() })
                     .setTimestamp();

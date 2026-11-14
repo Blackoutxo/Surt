@@ -7,7 +7,7 @@ const db = new Database(dbPath);
 // Offences db exec & Vars
 db.exec(`
     CREATE TABLE IF NOT EXISTS mod_cases(
-        id INTEGER PRIMARY KEY AUTO INCREMENT,
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
         guild_id TEXT NOT NULL,
         user_id TEXT NOT NULL,
         moderator_id TEXT,
@@ -24,14 +24,14 @@ const addOffenceStatement = db.prepare(`
         VALUES (@guild_id, @user_id, @moderator_id, @action, @created_at)
     `);
 
-const getOffences = db.prepare(`
+const getOffencesST = db.prepare(`
         SELECT id, moderator_id, action, created_at
         FROM mod_cases
         WHERE guild_id = ? AND user_id = ?
         ORDER BY created_at DESC
     `);
 
-const getOffenceCount = db.prepare(`
+const getOffenceCountST = db.prepare(`
         SELECT COUNT(*) AS total
         FROM mod_cases
         WHERE guild_id = ? AND user_id = ? 
@@ -52,11 +52,11 @@ function addOffence(guild_id, user_id, moderator_id = null, action, reason = nul
 }
 
 function getOffences(guild_id, user_id) {
-    return getOffences.all(guild_id, user_id);
+    return getOffencesST.all(guild_id, user_id);
 }
 
 function getOffenceCount(guild_id, user_id) {
-    return getOffenceCount.get(guild_id, user_id).total;
+    return getOffenceCountST.get(guild_id, user_id).total;
 }
 
 // Export
