@@ -70,26 +70,34 @@ module.exports = {
                     return interaction.reply({
                         content: `${member.user.tag} has been warned by ${interaction.user.tag} for ${reason}`,
                     });
-
-                    break;
                 }
                 case "timeout": {                    
-                    return interaction.reply({
-                        content: `${member.user.tag} has been timed out by ${interaction.user.tag}`,
-                    });
-
                     await member.timeout(5 * 60 * 1000, reason);
-                    break;
+                    return interaction.reply({
+                        content: `${member.user.tag} has been timed out by ${interaction.user.tag} for ${reason}`
+                    });
                 }
                 case "kick": {
+                    await interaction.guild.members.kick(member.id, { reason });
                     return interaction.reply({
-                        content: `${member.user.tag} has been kicked out by ${interaction.user.tag}`,
+                        content: `${member.user.tag} has been kicked out by ${interaction.user.tag} for ${reason}`
                     });
-
-                    await member.kick(reason);
-                    break;
+                }
+                case "ban": {
+                    await interaction.guild.members.ban(member.id, { reason });
+                    return interaction.reply({
+                        content: `${member.user.tag} has been banned by ${interaction.user.tag} for ${reason}`
+                    });
                 }
             }
+
+            // Add offence in database
+            addOffence(interaction.guild.id, member.id, interaction.user.id, action, reason);
+
+            return interaction.reply({
+                content: `Logged in user's offence`,
+                Ephemeral: true
+            });
 
         } else {
             return interaction.reply({
