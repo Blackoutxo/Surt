@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, MessageFlags } = require('discord.js');
+const { SlashCommandBuilder, MessageFlags, PermissionFlagsBits } = require('discord.js');
 const { addOffence } = require('../../lib/db.js');
 
 module.exports = {
@@ -26,18 +26,75 @@ module.exports = {
           ),
 
     async execute(interaction) {
+        if (!interaction.inGuild()) {
+            return interaction.reply({
+                content: "Only in server!",
+                flags: MessageFlags.Ephemeral,
+            });
+        }
 
         // Values
-        const targetUser = interaction.options.getUser("target", true);
-        const memId = interaction.guild.member.fetch(targetUser.id).catch();
+        const member = interaction.options.getMember("target", true);
         const action = interaction.options.getString("action", true);
         const reason = interaction.options.getString("reason") || "No reason provided.";
 
-        // Self & Moderatable user check
-        if (targetUser.id === interaction.user.id) {
+        // Several permission, self sabotage, hierarchy checks
+        if (!interaction.memberPermissions.has(PermissionFlagsBits.KickMembers)) {
+            return interaction.reply({
+                content: "Only a moderator can use this command.",
+            });
+        }
+
+        if (member.id === interaction.user.id) {
             return interaction.reply({
                 content: "You cannot self moderate!",
                 flags: MessageFlags.Ephemeral
+            });
+        }
+
+        if (member) {
+            const isGuildOwner = interaction.user.id === interaction.guild.ownerId;
+            const isHigher = isGuildOwner || interaction.member.roles.highest.comparePositionTo(member.roles.highest) > 0;
+
+            // Hierarchy check
+            if (!isHigher) {
+                return interaction.reply({
+                    content: "You cannot moderate someone who has higher role than you!",
+                    flags: MessageFlags.Ephemeral,
+                });
+            }
+
+            // Action
+            switch (action) {
+                case "warn": {
+                    return interaction.reply({
+                        content: `${member.user.tag} has been warned by ${interaction.user.tag} for ${reason}`,
+                    });
+
+                    break;
+                }
+                case "timeout": {                    
+                    return interaction.reply({
+                        content: `${member.user.tag} has been timed out by ${interaction.user.tag}`,
+                    });
+
+                    await member.timeout(5 * 60 * 1000, reason);
+                    break;
+                }
+                case "kick": {
+                    return interaction.reply({
+                        content: `${member.user.tag} has been kicked out by ${interaction.user.tag}`,
+                    });
+
+                    await member.kick(reason);
+                    break;
+                }
+            }
+
+        } else {
+            return interaction.reply({
+                content: `user is not in the server!`,
+                Ephemeral: true
             });
         }
     }
